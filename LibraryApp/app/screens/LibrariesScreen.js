@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 20,
-        color: '#fff',
+        color: '#000000', // Alterado para uma cor mais escura
     },
     input: {
         backgroundColor: '#fff',
@@ -282,12 +282,18 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
         borderRadius: 8,
+        color: '#000000', // Cor do texto dentro do campo de entrada
+        borderWidth: 1, // Adiciona uma borda leve para contraste
+        borderColor: '#ccc', // Cor da borda do input
     },
     buttonRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
         marginTop: 10,
+    },
+    button: {
+        color: '#6200ee', // Certifique-se de que os botões têm contraste adequado
     },
 });
 
