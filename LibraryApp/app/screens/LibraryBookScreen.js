@@ -7,6 +7,7 @@ import {
     ActivityIndicator,
     Alert,
     TouchableOpacity,
+    Image,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { router } from "expo-router";
@@ -96,19 +97,32 @@ const LibraryBookScreen = () => {
         );
     };
 
-    const renderBook = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: './BookDetailsScreen', params: { isbn: item.isbn } })}
-            onLongPress={() => confirmCheckout(item.isbn, item.title, item.available)}
-        >
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.author}>Author: {item.authors.map(a => a.name).join(', ')}</Text>
-            <Text style={[styles.status, { color: item.available > 0 ? '#28a745' : '#dc3545' }]}>
-                {item.available > 0 ? `${item.available} Available` : 'Not Available'}
-            </Text>
-        </TouchableOpacity>
-    );
+    const renderBook = ({ item }) => {
+        const coverUrl = `http://193.136.62.24/v1/assets/cover/${item.isbn}-M.jpg`;
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push({ pathname: './BookDetailsScreen', params: { isbn: item.isbn } })}
+                onLongPress={() => confirmCheckout(item.isbn, item.title, item.available)}
+            >
+                <Image
+                    source={{ uri: coverUrl }}
+                    style={styles.coverImage}
+                    resizeMode="cover"
+                />
+                <View style={styles.textContainer}>
+                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.author}>Author: {item.authors.map(a => a.name).join(', ')}</Text>
+                    <Text style={[styles.status, { color: item.available > 0 ? '#28a745' : '#dc3545' }]}>
+                        {item.available > 0 ? `${item.available} Available` : 'Not Available'}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+
 
     return (
         <View style={styles.container}>
@@ -149,6 +163,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignSelf: 'flex-start',
     },
+
     backButtonText: {
         color: '#fff',
         fontSize: 16,
@@ -160,7 +175,17 @@ const styles = StyleSheet.create({
     list: {
         paddingVertical: 10,
     },
+    coverImage: {
+        width: 50,
+        height: 75,
+        borderRadius: 4,
+        marginRight: 10,
+    },
+    textContainer: {
+        flex: 1,
+    },
     card: {
+        flexDirection: 'row',
         backgroundColor: '#fff',
         padding: 15,
         marginBottom: 10,
