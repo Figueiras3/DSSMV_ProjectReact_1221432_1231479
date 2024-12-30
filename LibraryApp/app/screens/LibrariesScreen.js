@@ -19,8 +19,6 @@ const LibrariesScreen = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
-    const [editModalVisible, setEditModalVisible] = useState(false);
-    const [selectedLibrary, setSelectedLibrary] = useState(null);
     const [newLibrary, setNewLibrary] = useState({
         name: '',
         address: '',
@@ -77,56 +75,6 @@ const LibrariesScreen = () => {
         }
     };
 
-    const updateLibrary = async () => {
-        if (!selectedLibrary) return;
-
-        try {
-            const response = await fetch(`http://193.136.62.24/v1/library/${selectedLibrary.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(selectedLibrary)
-            });
-
-            if (response.ok) {
-                Alert.alert('Sucesso', 'Biblioteca atualizada com sucesso!');
-                setEditModalVisible(false);
-                fetchLibraries();
-            } else {
-                const errorData = await response.json();
-                Alert.alert('Erro', errorData.message || 'Erro ao atualizar biblioteca.');
-            }
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Erro', 'Erro ao atualizar biblioteca.');
-        }
-    };
-
-    const deleteLibrary = async (libraryId) => {
-        try {
-            const response = await fetch(`http://193.136.62.24/v1/library/${libraryId}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                Alert.alert('Sucesso', 'Biblioteca removida com sucesso!');
-                fetchLibraries();
-            } else if (response.status === 500) {
-                Alert.alert(
-                    'Erro',
-                    'A biblioteca não pode ser removida porque contém livros associados.'
-                );
-            } else {
-                const errorData = await response.json();
-                Alert.alert('Erro', errorData.message || 'Erro ao remover biblioteca.');
-            }
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Erro', 'Erro ao remover biblioteca.');
-        }
-    };
-
     useEffect(() => {
         fetchLibraries();
 
@@ -149,31 +97,6 @@ const LibrariesScreen = () => {
         <TouchableOpacity
             style={styles.card}
             onPress={() => router.push({ pathname: './LibraryBookScreen', params: { id: item.id } })}
-            onLongPress={() => {
-                Alert.alert(
-                    "Ações",
-                    `Escolha uma ação para "${item.name}"`,
-                    [
-                        {
-                            text: "Editar",
-                            onPress: () => {
-                                setSelectedLibrary(item);
-                                setEditModalVisible(true);
-                            },
-                        },
-                        {
-                            text: "Excluir",
-                            onPress: () => deleteLibrary(item.id),
-                            style: "destructive",
-                        },
-                        {
-                            text: "Cancelar",
-                            style: "cancel",
-                        },
-                    ],
-                    { cancelable: true }
-                );
-            }}
         >
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.address}>{item.address}</Text>
@@ -217,7 +140,52 @@ const LibrariesScreen = () => {
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.modalView}>
-                    {/* Campos e botões de adição */}
+                    <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 8, width: '90%' }}>
+                        <Text style={styles.modalTitle}>Adicionar Biblioteca</Text>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Nome da Biblioteca"
+                            value={newLibrary.name}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, name: text })}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Morada"
+                            value={newLibrary.address}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, address: text })}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Hora de Abertura (ex: 08:00)"
+                            value={newLibrary.openTime}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, openTime: text })}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Hora de Fecho (ex: 18:00)"
+                            value={newLibrary.closeTime}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, closeTime: text })}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Dias de Abertura (ex: Seg-Sex)"
+                            value={newLibrary.openDays}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, openDays: text })}
+                        />
+
+                        <View style={styles.buttonRow}>
+                            <Button
+                                title="Cancelar"
+                                onPress={() => {
+                                    setModalVisible(false);
+                                    setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
+                                }}
+                                color="#6200ee"
+                            />
+                            <Button title="Adicionar" onPress={addLibrary} color="#03dac6" />
+                        </View>
+                    </View>
                 </View>
             </Modal>
         </View>

@@ -20,15 +20,25 @@ const UserLinkScreen = () => {
     const fetchBooksByUser = async (username) => {
         try {
             const response = await fetch(`http://193.136.62.24/v1/books/user/${username}`);
+            if (!response.ok) {
+                throw new Error(`Error fetching books: ${response.status}`);
+            }
+
             const data = await response.json();
-            setBooks(data);
+
+            if (!Array.isArray(data)) {
+                throw new Error("Unexpected response structure from API.");
+            }
+
+            setBooks(data); // Certifique-se de que a estrutura é compatível
         } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Could not fetch books for the user.');
+            console.error("Failed to fetch books:", error);
+            Alert.alert("Error", "Could not fetch books for the user.");
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <View style={styles.container}>
