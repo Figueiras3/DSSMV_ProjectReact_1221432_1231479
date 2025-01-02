@@ -8,6 +8,9 @@ import {
     Alert,
     TouchableOpacity,
     Image,
+    TextInput,
+    Modal,
+    Button,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { router } from "expo-router";
@@ -19,6 +22,9 @@ const LibraryBookScreen = () => {
 
     const [books, setBooks] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [isbn, setIsbn] = useState('');
+    const [stock, setStock] = useState('');
 
     useEffect(() => {
         fetchBooks();
@@ -65,6 +71,35 @@ const LibraryBookScreen = () => {
         } catch (error) {
             console.error(error);
             Alert.alert('Error', 'Unable to checkout the book.');
+        }
+    };
+
+    const addBookToLibrary = async () => {
+        if (!isbn || !stock) {
+            Alert.alert('Error', 'ISBN and stock are required.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://193.136.62.24/v1/library/${libraryId}/book/${isbn}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stock: parseInt(stock) }),
+            });
+
+            if (response.ok) {
+                Alert.alert('Success', 'Book added successfully!');
+                fetchBooks(); // Refresh the list
+                setModalVisible(false);
+                setIsbn('');
+                setStock('');
+            } else {
+                const errorText = await response.text();
+                Alert.alert('Error', `Failed to add the book: ${errorText}`);
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Unable to add the book.');
         }
     };
 
@@ -123,8 +158,6 @@ const LibraryBookScreen = () => {
         );
     };
 
-
-
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -146,6 +179,41 @@ const LibraryBookScreen = () => {
             ) : (
                 <Text style={styles.noData}>No books available for this library.</Text>
             )}
+
+            <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setModalVisible(true)}
+            >
+                <Text style={styles.addButtonText}>+ Add Book</Text>
+            </TouchableOpacity>
+
+            <Modal
+                visible={modalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Add New Book</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter ISBN"
+                            value={isbn}
+                            onChangeText={setIsbn}
+                        />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter Stock"
+                            keyboardType="numeric"
+                            value={stock}
+                            onChangeText={setStock}
+                        />
+                        <Button title="Add" onPress={addBookToLibrary} />
+                        <Button title="Cancel" color="#888" onPress={() => setModalVisible(false)} />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -218,6 +286,44 @@ const styles = StyleSheet.create({
         color: '#888',
         textAlign: 'center',
         marginTop: 20,
+    },
+    addButton: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        backgroundColor: '#6200ee',
+        borderRadius: 30,
+        padding: 16,
+    },
+    addButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 8,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 16,
+    },
+    input: {
+        width: '100%',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        marginBottom: 16,
+        padding: 8,
     },
 });
 
