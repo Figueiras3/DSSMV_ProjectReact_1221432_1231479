@@ -103,7 +103,8 @@ const LibraryBookScreen = () => {
         return (
             <TouchableOpacity
                 style={styles.card}
-                onPress={() => router.push({ pathname: './BookDetailsScreen', params: { isbn: item.isbn } })}
+
+                onPress={() => router.push({ pathname: './BookDetailsScreen', params: { isbn: item.isbn, libraryId} })}
                 onLongPress={() => confirmCheckout(item.isbn, item.title, item.available)}
             >
                 <Image
