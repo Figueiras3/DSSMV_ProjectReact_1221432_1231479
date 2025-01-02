@@ -19,7 +19,7 @@ const UserLinkScreen = () => {
 
     const fetchBooksByUser = async (username) => {
         try {
-            const response = await fetch(`http://193.136.62.24/v1/books/user/${username}`);
+            const response = await fetch(`http://193.136.62.24/v1/user/checked-out?userId=${username}`);
             if (!response.ok) {
                 throw new Error(`Error fetching books: ${response.status}`);
             }
@@ -39,12 +39,11 @@ const UserLinkScreen = () => {
         }
     };
 
-
     return (
         <View style={styles.container}>
             {/* Botão de Voltar */}
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                <Text style={styles.backButtonText}>← Back</Text>
+                <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
 
             <Text style={styles.header}>
