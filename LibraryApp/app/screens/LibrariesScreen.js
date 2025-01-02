@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     Modal,
     TextInput,
-    Button
+    Button,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { router } from "expo-router";
@@ -19,12 +19,14 @@ const LibrariesScreen = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [selectedLibrary, setSelectedLibrary] = useState(null);
     const [newLibrary, setNewLibrary] = useState({
         name: '',
         address: '',
         openTime: '',
         closeTime: '',
-        openDays: ''
+        openDays: '',
     });
     const navigation = useNavigation();
 
@@ -41,44 +43,60 @@ const LibrariesScreen = () => {
         }
     };
 
-    const addLibrary = async () => {
-        const { name, address, openTime, closeTime, openDays } = newLibrary;
-
-        if (!name || !address || !openTime || !closeTime || !openDays) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-            return;
-        }
-
+    const deleteLibrary = async (libraryId) => {
         try {
-            const response = await fetch('http://193.136.62.24/v1/library', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newLibrary)
+            const response = await fetch(`http://193.136.62.24/v1/library/${libraryId}`, {
+                method: 'DELETE',
             });
 
             if (response.ok) {
-                const addedLibrary = await response.json();
-                setData(prevData => (prevData ? [addedLibrary, ...prevData] : [addedLibrary]));
-                Alert.alert('Sucesso', 'Biblioteca adicionada com sucesso!');
-                setModalVisible(false);
-                setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
+                Alert.alert('Sucesso', 'Biblioteca excluída com sucesso.');
                 fetchLibraries();
             } else {
-                const errorData = await response.json();
-                Alert.alert('Erro', errorData.message || 'Erro ao adicionar biblioteca.');
+                Alert.alert('Erro', 'Erro ao excluir biblioteca.');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Erro', 'Erro ao adicionar biblioteca.');
+            Alert.alert('Erro', 'Erro ao excluir biblioteca.');
         }
     };
+
+    const handleEditLibrary = (library) => {
+        setModalVisible(true);
+        setNewLibrary(library);
+    };
+
+    const handleDeleteLibrary = (library) => {
+        Alert.alert(
+            'Confirmar Exclusão',
+            `Tem certeza que deseja excluir a biblioteca "${library.name}"?`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Excluir', onPress: () => deleteLibrary(library.id) },
+            ]
+        );
+    };
+
+    const renderCard = ({ item }) => (
+        <TouchableOpacity
+            style={styles.card}
+            onLongPress={() => {
+                setSelectedLibrary(item);
+                setMenuVisible(true);
+            }}
+            onPress={() => router.push({ pathname: './LibraryBookScreen', params: { id: item.id } })}
+        >
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.address}>{item.address}</Text>
+            <Text style={styles.details}>Horário: {item.openTime} - {item.closeTime}</Text>
+            <Text style={styles.details}>Dias: {item.openDays}</Text>
+        </TouchableOpacity>
+    );
 
     useEffect(() => {
         fetchLibraries();
 
-        const subscription = Accelerometer.addListener(accelerometerData => {
+        const subscription = Accelerometer.addListener((accelerometerData) => {
             const { x, y, z } = accelerometerData;
 
             if (Math.abs(x) > 1.5 || Math.abs(y) > 1.5 || Math.abs(z) > 1.5) {
@@ -92,18 +110,6 @@ const LibrariesScreen = () => {
             subscription.remove();
         };
     }, []);
-
-    const renderCard = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: './LibraryBookScreen', params: { id: item.id } })}
-        >
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.address}>{item.address}</Text>
-            <Text style={styles.details}>Horário: {item.openTime} - {item.closeTime}</Text>
-            <Text style={styles.details}>Dias: {item.openDays}</Text>
-        </TouchableOpacity>
-    );
 
     return (
         <View style={styles.container}>
@@ -132,7 +138,39 @@ const LibrariesScreen = () => {
                 <Text style={styles.fabText}>+</Text>
             </TouchableOpacity>
 
-            {/* Modal de Adição */}
+            {/* Menu de Contexto */}
+            <Modal
+                transparent={true}
+                visible={menuVisible}
+                animationType="fade"
+                onRequestClose={() => setMenuVisible(false)}
+            >
+                <View style={styles.menuOverlay}>
+                    <View style={styles.menu}>
+                        <Button
+                            title="Editar"
+                            onPress={() => {
+                                handleEditLibrary(selectedLibrary);
+                                setMenuVisible(false);
+                            }}
+                        />
+                        <Button
+                            title="Excluir"
+                            onPress={() => {
+                                handleDeleteLibrary(selectedLibrary);
+                                setMenuVisible(false);
+                            }}
+                            color="red"
+                        />
+                        <Button
+                            title="Cancelar"
+                            onPress={() => setMenuVisible(false)}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Modal de Adição/Edição */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -141,7 +179,9 @@ const LibrariesScreen = () => {
             >
                 <View style={styles.modalView}>
                     <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 8, width: '90%' }}>
-                        <Text style={styles.modalTitle}>Adicionar Biblioteca</Text>
+                        <Text style={styles.modalTitle}>
+                            {newLibrary.id ? 'Editar Biblioteca' : 'Adicionar Biblioteca'}
+                        </Text>
 
                         <TextInput
                             style={styles.input}
@@ -183,7 +223,13 @@ const LibrariesScreen = () => {
                                 }}
                                 color="#6200ee"
                             />
-                            <Button title="Adicionar" onPress={addLibrary} color="#03dac6" />
+                            <Button
+                                title={newLibrary.id ? 'Salvar Alterações' : 'Adicionar'}
+                                onPress={() => {
+                                    // Lógica de salvar (adicionar ou editar) biblioteca
+                                }}
+                                color="#03dac6"
+                            />
                         </View>
                     </View>
                 </View>
@@ -295,6 +341,19 @@ const styles = StyleSheet.create({
     button: {
         color: '#6200ee', // Certifique-se de que os botões têm contraste adequado
     },
+    menuOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    menu: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 8,
+        width: 250,
+    },
+
 });
 
 export default LibrariesScreen;
