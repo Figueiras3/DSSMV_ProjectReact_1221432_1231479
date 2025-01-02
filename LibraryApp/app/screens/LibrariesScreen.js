@@ -11,6 +11,7 @@ import {
     TextInput,
     Button,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { router } from "expo-router";
 import { Accelerometer } from "expo-sensors";
@@ -28,6 +29,8 @@ const LibrariesScreen = () => {
         closeTime: '',
         openDays: '',
     });
+    const [showTimePicker, setShowTimePicker] = useState({ openTime: false, closeTime: false });
+    const [selectedTime, setSelectedTime] = useState(null);
     const navigation = useNavigation();
 
     const fetchLibraries = async () => {
@@ -60,7 +63,6 @@ const LibrariesScreen = () => {
             Alert.alert('Erro', 'Erro ao excluir biblioteca.');
         }
     };
-
     const handleEditLibrary = (library) => {
         setModalVisible(true);
         setNewLibrary(library);
@@ -195,18 +197,33 @@ const LibrariesScreen = () => {
                             value={newLibrary.address}
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, address: text })}
                         />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Hora de Abertura (ex: 08:00)"
-                            value={newLibrary.openTime}
-                            onChangeText={(text) => setNewLibrary({ ...newLibrary, openTime: text })}
+
+                        <Text>Hora de Abertura</Text>
+                        <Button
+                            title={newLibrary.openTime || "Selecionar Hora de Abertura"}
+                            onPress={() => setShowTimePicker({ ...showTimePicker, openTime: true })}
                         />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Hora de Fecho (ex: 18:00)"
-                            value={newLibrary.closeTime}
-                            onChangeText={(text) => setNewLibrary({ ...newLibrary, closeTime: text })}
+                        {showTimePicker.openTime && (
+                            <DateTimePicker
+                                mode="time"
+                                value={new Date()}
+                                onChange={(event, selectedDate) => handleTimeChange(event, selectedDate, 'openTime')}
+                            />
+                        )}
+
+                        <Text>Hora de Fecho</Text>
+                        <Button
+                            title={newLibrary.closeTime || "Selecionar Hora de Fecho"}
+                            onPress={() => setShowTimePicker({ ...showTimePicker, closeTime: true })}
                         />
+                        {showTimePicker.closeTime && (
+                            <DateTimePicker
+                                mode="time"
+                                value={new Date()}
+                                onChange={(event, selectedDate) => handleTimeChange(event, selectedDate, 'closeTime')}
+                            />
+                        )}
+
                         <TextInput
                             style={styles.input}
                             placeholder="Dias de Abertura (ex: Seg-Sex)"
@@ -264,16 +281,16 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333', // Cor do título para contraste com o fundo
+        color: '#333',
     },
     address: {
         fontSize: 14,
-        color: '#666', // Cor do endereço ajustada para maior visibilidade
+        color: '#666',
     },
     details: {
-        fontSize: 14, // Tamanho de fonte ajustado
-        color: '#333', // Certificando que o texto é visível em fundo branco
-        marginTop: 4, // Adicionando espaçamento entre os elementos
+        fontSize: 14,
+        color: '#333',
+        marginTop: 4,
     },
     backButton: {
         backgroundColor: '#6200ee',
@@ -320,7 +337,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 20,
-        color: '#000000', // Alterado para uma cor mais escura
+        color: '#000000',
     },
     input: {
         backgroundColor: '#fff',
@@ -328,9 +345,9 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
         borderRadius: 8,
-        color: '#000000', // Cor do texto dentro do campo de entrada
-        borderWidth: 1, // Adiciona uma borda leve para contraste
-        borderColor: '#ccc', // Cor da borda do input
+        color: '#000000',
+        borderWidth: 1,
+        borderColor: '#ccc',
     },
     buttonRow: {
         flexDirection: 'row',
@@ -353,7 +370,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         width: 250,
     },
-
 });
 
 export default LibrariesScreen;
