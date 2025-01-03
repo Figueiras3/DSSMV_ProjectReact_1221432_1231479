@@ -209,6 +209,7 @@ const LibrariesScreen = () => {
             </Modal>
 
             {/* Modal de Adição/Edição */}
+            {/* Modal de Adição/Edição */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -221,48 +222,48 @@ const LibrariesScreen = () => {
                             {newLibrary.id ? 'Editar Biblioteca' : 'Adicionar Biblioteca'}
                         </Text>
 
+                        {/* Nome da Biblioteca */}
                         <TextInput
                             style={styles.input}
                             placeholder="Nome da Biblioteca"
+                            placeholderTextColor="rgba(0, 0, 0, 0.2)"
                             value={newLibrary.name}
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, name: text })}
                         />
+
+                        {/* Morada */}
                         <TextInput
                             style={styles.input}
                             placeholder="Morada"
+                            placeholderTextColor="rgba(0, 0, 0, 0.2)"
                             value={newLibrary.address}
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, address: text })}
                         />
 
-                        <Text>Hora de Abertura</Text>
-                        <Button
-                            title={newLibrary.openTime || "Selecionar Hora de Abertura"}
-                            onPress={() => setShowTimePicker({ ...showTimePicker, openTime: true })}
+                        {/* Hora de Abertura */}
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Hora de Abertura (ex: 08:00)"
+                            placeholderTextColor="rgba(0, 0, 0, 0.2)"
+                            value={newLibrary.openTime}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, openTime: text })}
                         />
-                        {showTimePicker.openTime && (
-                            <DateTimePicker
-                                mode="time"
-                                value={new Date()}
-                                onChange={(event, selectedDate) => handleTimeChange(event, selectedDate, 'openTime')}
-                            />
-                        )}
 
-                        <Text>Hora de Fecho</Text>
-                        <Button
-                            title={newLibrary.closeTime || "Selecionar Hora de Fecho"}
-                            onPress={() => setShowTimePicker({ ...showTimePicker, closeTime: true })}
+                        {/* Hora de Fecho */}
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Hora de Fecho (ex: 18:00)"
+                            placeholderTextColor="rgba(0, 0, 0, 0.2)"
+                            value={newLibrary.closeTime}
+                            onChangeText={(text) => setNewLibrary({ ...newLibrary, closeTime: text })}
                         />
-                        {showTimePicker.closeTime && (
-                            <DateTimePicker
-                                mode="time"
-                                value={new Date()}
-                                onChange={(event, selectedDate) => handleTimeChange(event, selectedDate, 'closeTime')}
-                            />
-                        )}
 
+                        {/* Dias de Abertura */}
                         <TextInput
                             style={styles.input}
                             placeholder="Dias de Abertura (ex: Seg-Sex)"
+                            placeholderTextColor="rgba(0, 0, 0, 0.2)" // Preto com 80% de opacidade
+
                             value={newLibrary.openDays}
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, openDays: text })}
                         />
@@ -279,7 +280,7 @@ const LibrariesScreen = () => {
                             <Button
                                 title={newLibrary.id ? 'Salvar Alterações' : 'Adicionar'}
                                 onPress={() => {
-                                    addLibrary()
+                                    addLibrary();
                                 }}
                                 color="#03dac6"
                             />
@@ -376,15 +377,18 @@ const styles = StyleSheet.create({
         color: '#000000',
     },
     input: {
-        backgroundColor: '#fff',
+        backgroundColor: '#fff', // Fundo branco para contraste
         width: '100%',
         padding: 10,
         marginBottom: 10,
         borderRadius: 8,
-        color: '#000000',
         borderWidth: 1,
         borderColor: '#ccc',
+        color: '#000', // Cor do texto principal (entrada)
+        fontSize: 16, // Tamanho do texto para melhorar a visibilidade
+        placeholderTextColor: '#666', // Adicione esta linha no componente TextInput
     },
+
     buttonRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
