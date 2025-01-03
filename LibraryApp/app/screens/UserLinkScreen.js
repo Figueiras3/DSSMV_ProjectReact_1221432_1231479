@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Alert, TouchableOpacity, Image, Button } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const UserLinkScreen = () => {
@@ -39,6 +39,71 @@ const UserLinkScreen = () => {
         }
     };
 
+    const performCheckIn = async (libraryId, isbn) => {
+        try {
+            // Função para formatar UUID
+            const formatUUID = (id) => {
+                if (id.length !== 32) {
+                    throw new Error("Invalid UUID length. It must be 32 characters without dashes.");
+                }
+                return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
+            };
+
+            let formattedLibraryId;
+            try {
+                formattedLibraryId = formatUUID(libraryId); // Garante que esteja no formato correto
+            } catch (error) {
+                console.error("Error formatting libraryId:", error.message);
+                Alert.alert("Error", "Invalid Library ID format.");
+                return;
+            }
+
+            const response = await fetch(`http://193.136.62.24/v1/library/${formattedLibraryId}/book/${isbn}/checkin?userId=${username}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    libraryId: formattedLibraryId,
+                    isbn: isbn,
+                    username: username,
+                }),
+            });
+
+            const responseText = await response.text(); // Pega a resposta como texto
+            let responseData;
+
+            if (responseText) {
+                try {
+                    responseData = JSON.parse(responseText); // Tenta converter para JSON
+                } catch (error) {
+                    console.error("Invalid JSON response:", responseText);
+                    throw new Error("Unexpected response format.");
+                }
+            }
+
+            console.log('Response data:', responseData); // Mostra detalhes da resposta
+
+            if (response.ok) {
+                Alert.alert("Success", "Check-in realizado com sucesso!");
+                fetchBooksByUser(username); // Atualiza a lista de livros
+            } else {
+                const errorMessage = responseData?.message || response.statusText || "Unknown error";
+                throw new Error(`Erro ao realizar o check-in: ${errorMessage}`);
+            }
+
+        } catch (error) {
+            console.error("Check-in failed:", error);
+            Alert.alert("Error", error.message || "Não foi possível realizar o check-in.");
+        }
+    };
+
+
+    const fetchBookCover = (isbn) => {
+        if (isbn) {
+            return `http://193.136.62.24/v1/assets/cover/${isbn}-L.jpg`;
+        }
+        return null;
+    };
+
     return (
         <View style={styles.container}>
             {/* Botão de Voltar */}
@@ -58,10 +123,28 @@ const UserLinkScreen = () => {
                     keyExtractor={(item) => item.book.isbn}
                     renderItem={({ item }) => (
                         <View style={styles.bookCard}>
+                            {/* Título */}
                             <Text style={styles.title}>Title: {item.book.title}</Text>
+                            {/* Autor */}
                             <Text style={styles.author}>
                                 Author: {item.book.authors?.[0]?.name || 'Unknown Author'}
                             </Text>
+                            {/* Imagem da Capa */}
+                            {fetchBookCover(item.book.isbn) ? (
+                                <Image
+                                    source={{ uri: fetchBookCover(item.book.isbn) }}
+                                    style={styles.coverImage}
+                                    resizeMode="contain"
+                                />
+                            ) : (
+                                <Text style={styles.noCover}>No cover available</Text>
+                            )}
+                            {/* Botão de Check-in */}
+                            <Button
+                                title="Check-In"
+                                onPress={() => performCheckIn(item.libraryId, item.book.isbn)}
+                                color="#6200ee"
+                            />
                         </View>
                     )}
                 />
@@ -130,6 +213,16 @@ const styles = StyleSheet.create({
     author: {
         fontSize: 14,
         color: '#555',
+    },
+    coverImage: {
+        width: '100%',
+        height: 150,
+        marginVertical: 10,
+    },
+    noCover: {
+        fontSize: 12,
+        color: '#999',
+        marginVertical: 10,
     },
 });
 
