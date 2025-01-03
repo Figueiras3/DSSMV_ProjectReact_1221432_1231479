@@ -66,9 +66,15 @@ const LibrariesScreen = () => {
 
     const handleEditLibrary = (library) => {
         setModalVisible(true);
-        setNewLibrary(library);
+        setNewLibrary({
+            id: library.id, // Incluímos o ID para realizar a edição
+            name: library.name,
+            address: library.address,
+            openTime: library.openTime,
+            closeTime: library.closeTime,
+            openDays: library.openDays,
+        });
     };
-
     const handleDeleteLibrary = (library) => {
         Alert.alert(
             'Confirmar Exclusão',
@@ -80,13 +86,37 @@ const LibrariesScreen = () => {
         );
     };
 
+    const handleLongPress = (library) => {
+        Alert.alert(
+            "Ação Disponível",
+            `Escolha uma ação para a biblioteca "${library.name}"`,
+            [
+                {
+                    text: "Editar",
+                    onPress: () => {
+                        handleEditLibrary(library);
+                    },
+                },
+                {
+                    text: "Excluir",
+                    onPress: () => {
+                        handleDeleteLibrary(library);
+                    },
+                    style: "destructive", // Define o botão como "perigoso" no iOS
+                },
+                {
+                    text: "Cancelar",
+                    style: "cancel",
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
     const renderCard = ({ item }) => (
         <TouchableOpacity
             style={styles.card}
-            onLongPress={() => {
-                setSelectedLibrary(item);
-                setMenuVisible(true);
-            }}
+            onLongPress={() => {handleLongPress(item)}}
             onPress={() => router.push({ pathname: './LibraryBookScreen', params: { id: item.id } })}
         >
             <Text style={styles.name}>{item.name}</Text>
@@ -96,6 +126,37 @@ const LibrariesScreen = () => {
         </TouchableOpacity>
     );
 
+    const editLibrary = async () => {
+        const { id, name, address, openTime, closeTime, openDays } = newLibrary;
+
+        if (!name || !address || !openTime || !closeTime || !openDays) {
+            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://193.136.62.24/v1/library/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, address, openTime, closeTime, openDays }),
+            });
+
+            if (response.ok) {
+                Alert.alert('Sucesso', 'Biblioteca editada com sucesso!');
+                setModalVisible(false);
+                setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
+                fetchLibraries(); // Atualiza a lista após a edição
+            } else {
+                const errorData = await response.json();
+                Alert.alert('Erro', errorData.message || 'Erro ao editar biblioteca.');
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Erro', 'Erro ao editar biblioteca.');
+        }
+    };
     const addLibrary = async () => {
         const { name, address, openTime, closeTime, openDays } = newLibrary;
 
@@ -209,7 +270,6 @@ const LibrariesScreen = () => {
             </Modal>
 
             {/* Modal de Adição/Edição */}
-            {/* Modal de Adição/Edição */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -278,9 +338,13 @@ const LibrariesScreen = () => {
                                 color="#6200ee"
                             />
                             <Button
-                                title={newLibrary.id ? 'Salvar Alterações' : 'Adicionar'}
+                                title="Salvar Alterações"
                                 onPress={() => {
-                                    addLibrary();
+                                    if (newLibrary.id) {
+                                        editLibrary();
+                                    } else {
+                                        addLibrary();
+                                    }
                                 }}
                                 color="#03dac6"
                             />
