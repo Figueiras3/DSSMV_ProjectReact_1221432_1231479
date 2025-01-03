@@ -63,6 +63,7 @@ const LibrariesScreen = () => {
             Alert.alert('Erro', 'Erro ao excluir biblioteca.');
         }
     };
+
     const handleEditLibrary = (library) => {
         setModalVisible(true);
         setNewLibrary(library);
@@ -94,6 +95,41 @@ const LibrariesScreen = () => {
             <Text style={styles.details}>Dias: {item.openDays}</Text>
         </TouchableOpacity>
     );
+
+    const addLibrary = async () => {
+        const { name, address, openTime, closeTime, openDays } = newLibrary;
+
+        if (!name || !address || !openTime || !closeTime || !openDays) {
+            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://193.136.62.24/v1/library', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newLibrary)
+            });
+
+            if (response.ok) {
+                const addedLibrary = await response.json();
+                setData(prevData => (prevData ? [addedLibrary, ...prevData] : [addedLibrary]));
+                Alert.alert('Sucesso', 'Biblioteca adicionada com sucesso!');
+                setModalVisible(false);
+                setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
+                fetchLibraries();
+            } else {
+                const errorData = await response.json();
+                Alert.alert('Erro', errorData.message || 'Erro ao adicionar biblioteca.');
+            }
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Erro', 'Erro ao adicionar biblioteca.');
+        }
+    };
+
 
     useEffect(() => {
         fetchLibraries();
@@ -243,7 +279,7 @@ const LibrariesScreen = () => {
                             <Button
                                 title={newLibrary.id ? 'Salvar Alterações' : 'Adicionar'}
                                 onPress={() => {
-                                    // Lógica de salvar (adicionar ou editar) biblioteca
+                                    addLibrary()
                                 }}
                                 color="#03dac6"
                             />

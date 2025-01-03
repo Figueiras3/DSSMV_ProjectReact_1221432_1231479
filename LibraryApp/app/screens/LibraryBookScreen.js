@@ -53,7 +53,7 @@ const LibraryBookScreen = () => {
     const handleCheckout = async (isbn, username) => {
         try {
             const response = await fetch(
-                `http://193.136.62.24/v1/library/${libraryId}/book/${isbn}/checkout`,
+                `http://193.136.62.24/v1/library/${libraryId}/book/${isbn}/checkout?userId=${username}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

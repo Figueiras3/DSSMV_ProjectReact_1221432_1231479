@@ -34,7 +34,7 @@ const UsernameScreen = () => {
                 style={styles.input}
                 placeholder="Username"
                 value={username}
-                onChangeText={setUsername}
+                onChangeText={(text) => setUsername(text.toLowerCase())} // Converte para minúsculas
             />
             <TouchableOpacity style={styles.button} onPress={handleViewUsers}>
                 <Text style={styles.buttonText}>View Users</Text>
