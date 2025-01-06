@@ -96,12 +96,54 @@ const UserLinkScreen = () => {
         }
     };
 
-
     const fetchBookCover = (isbn) => {
         if (isbn) {
-            return `http://193.136.62.24/v1/assets/cover/${isbn}-L.jpg`;
+            return `http://193.136.62.24/v1/assets/cover/${isbn}-M.jpg`;
         }
         return null;
+    };
+
+    const handleLongPress = (libraryId, isbn) => {
+        Alert.alert(
+            "Choose an Action",
+            "What would you like to do?",
+            [
+                {
+                    text: "Extend",
+                    onPress: () => handleExtend(libraryId, isbn),
+                },
+                {
+                    text: "Check-In",
+                    onPress: () => performCheckIn(libraryId, isbn),
+                },
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
+    const handleExtend = async (libraryId, isbn) => {
+        try {
+            const response = await fetch(
+                `http://193.136.62.24/v1/library/${libraryId}/book/${isbn}/extend?userId=${username}`,
+                { method: "POST" }
+            );
+
+            if (response.ok) {
+                Alert.alert("Success", "The due date has been extended!");
+                fetchBooksByUser(username); // Atualiza a lista de livros
+            } else {
+                const errorText = await response.text();
+                console.error("Extend failed:", errorText);
+                throw new Error("Could not extend the due date.");
+            }
+        } catch (error) {
+            console.error("Extend error:", error);
+            Alert.alert("Error", error.message || "Failed to extend the due date.");
+        }
     };
 
     return (
@@ -122,30 +164,36 @@ const UserLinkScreen = () => {
                     data={books}
                     keyExtractor={(item) => item.book.isbn}
                     renderItem={({ item }) => (
-                        <View style={styles.bookCard}>
-                            {/* Título */}
-                            <Text style={styles.title}>Title: {item.book.title}</Text>
-                            {/* Autor */}
-                            <Text style={styles.author}>
-                                Author: {item.book.authors?.[0]?.name || 'Unknown Author'}
-                            </Text>
-                            {/* Imagem da Capa */}
-                            {fetchBookCover(item.book.isbn) ? (
-                                <Image
-                                    source={{ uri: fetchBookCover(item.book.isbn) }}
-                                    style={styles.coverImage}
-                                    resizeMode="contain"
-                                />
-                            ) : (
-                                <Text style={styles.noCover}>No cover available</Text>
-                            )}
-                            {/* Botão de Check-in */}
-                            <Button
-                                title="Check-In"
-                                onPress={() => performCheckIn(item.libraryId, item.book.isbn)}
-                                color="#6200ee"
-                            />
-                        </View>
+                        <TouchableOpacity
+                            style={styles.bookCard}
+                            onLongPress={() => handleLongPress(item.libraryId, item.book.isbn)}
+                        >
+                            <View style={styles.bookInfoContainer}>
+                                {/* Imagem da Capa */}
+                                {fetchBookCover(item.book.isbn) ? (
+                                    <Image
+                                        source={{ uri: fetchBookCover(item.book.isbn) }}
+                                        style={styles.coverImage}
+                                        resizeMode="contain"
+                                    />
+                                ) : (
+                                    <Text style={styles.noCover}>No cover available</Text>
+                                )}
+                                {/* Detalhes do Livro */}
+                                <View style={styles.bookDetails}>
+                                    <Text style={styles.title}>Title: {item.book.title}</Text>
+                                    <Text style={styles.author}>
+                                        Author: {item.book.authors?.[0]?.name || 'Unknown Author'}
+                                    </Text>
+                                    {/* Exibe a dueDate */}
+                                    {item.dueDate && (
+                                        <Text style={styles.dueDate}>
+                                            Due Date: {new Date(item.dueDate).toLocaleDateString()}
+                                        </Text>
+                                    )}
+                                </View>
+                            </View>
+                        </TouchableOpacity>
                     )}
                 />
             ) : (
@@ -188,12 +236,6 @@ const styles = StyleSheet.create({
         marginTop: 20,
         textAlign: 'center',
     },
-    noBooks: {
-        marginTop: 20,
-        textAlign: 'center',
-        fontSize: 16,
-        color: '#555',
-    },
     bookCard: {
         backgroundColor: '#fff',
         padding: 15,
@@ -205,6 +247,13 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
+
+    noBooks: {
+        marginTop: 20,
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#555',
+    },
     title: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -214,16 +263,51 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#555',
     },
-    coverImage: {
-        width: '100%',
-        height: 150,
-        marginVertical: 10,
-    },
     noCover: {
         fontSize: 12,
         color: '#999',
         marginVertical: 10,
     },
+    bookInfoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
+    bookDetails: {
+        flex: 1,
+        marginLeft: 10,
+    },
+    coverImage: {
+        width: 80,
+        height: 120,
+        borderRadius: 4,
+    },
+    checkInButton: {
+        marginTop: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        backgroundColor: '#6200ee',
+        borderRadius: 8,
+        alignSelf: 'flex-start', // Alinha o botão no início do container
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    checkInButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    dueDate: {
+        fontSize: 14,
+        color: '#d32f2f', // Vermelho para chamar atenção
+        marginTop: 5,
+    },
+
+
 });
 
 export default UserLinkScreen;
