@@ -103,47 +103,48 @@ const UserLinkScreen = () => {
         return null;
     };
 
-    const handleLongPress = (libraryId, isbn) => {
+    const handleExtend = async (id) => {
+        try {
+            const url = `http://193.136.62.24/v1/checkout/${id}/extend`;
+
+            const response = await fetch(url, { method: "POST" });
+
+            if (response.ok) {
+                Alert.alert("Sucesso", "A data de devolução foi estendida!");
+                fetchBooksByUser(username);  // Atualiza a UI com a nova data de devolução
+                return true;
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText || `Falha ao estender (status: ${response.status})`);
+            }
+        } catch (error) {
+            console.error("Erro ao estender prazo:", error);
+            Alert.alert("Erro", error.message || "Ocorreu um erro inesperado.");
+            return false;
+        }
+    };
+
+
+    const handleLongPress = (libraryId, checkoutId, isbn) => {
         Alert.alert(
-            "Choose an Action",
-            "What would you like to do?",
+            "Escolha uma Ação",
+            "O que gostaria de fazer?",
             [
                 {
-                    text: "Extend",
-                    onPress: () => handleExtend(libraryId, isbn),
+                    text: "Extender",
+                    onPress: () => handleExtend(checkoutId),
                 },
                 {
-                    text: "Check-In",
+                    text: "Check In",
                     onPress: () => performCheckIn(libraryId, isbn),
                 },
                 {
-                    text: "Cancel",
+                    text: "Cancelar",
                     style: "cancel",
                 },
             ],
             { cancelable: true }
         );
-    };
-
-    const handleExtend = async (libraryId, isbn) => {
-        try {
-            const response = await fetch(
-                `http://193.136.62.24/v1/library/${libraryId}/book/${isbn}/extend?userId=${username}`,
-                { method: "POST" }
-            );
-
-            if (response.ok) {
-                Alert.alert("Success", "The due date has been extended!");
-                fetchBooksByUser(username); // Atualiza a lista de livros
-            } else {
-                const errorText = await response.text();
-                console.error("Extend failed:", errorText);
-                throw new Error("Could not extend the due date.");
-            }
-        } catch (error) {
-            console.error("Extend error:", error);
-            Alert.alert("Error", error.message || "Failed to extend the due date.");
-        }
     };
 
     return (
@@ -166,7 +167,8 @@ const UserLinkScreen = () => {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={styles.bookCard}
-                            onLongPress={() => handleLongPress(item.libraryId, item.book.isbn)}
+                            onLongPress={() => handleLongPress(item.libraryId, item.id, item.book.isbn)}
+
                         >
                             <View style={styles.bookInfoContainer}>
                                 {/* Imagem da Capa */}
