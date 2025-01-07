@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@react-native-community/checkbox": "^0.5.17",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-navigation/bottom-tabs": "^7.0.0",
     "@react-navigation/native": "^7.0.14",
@@ -34,8 +35,9 @@
     "expo-web-browser": "~14.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-native": "0.76.5",
+    "react-native": "^0.76.5",
     "react-native-check-box": "^2.1.7",
+    "react-native-checkbox": "^2.0.0",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-reanimated": "~3.16.1",

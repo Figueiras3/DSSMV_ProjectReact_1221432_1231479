@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Switch } from 'react-native';
 import {
     View,
     StyleSheet,
@@ -15,6 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { router } from "expo-router";
 import { Accelerometer } from "expo-sensors";
+import CheckBox from '@react-native-community/checkbox';
 
 const LibrariesScreen = () => {
     const [data, setData] = useState(null);
@@ -29,9 +31,19 @@ const LibrariesScreen = () => {
         closeTime: '',
         openDays: '',
     });
-    const [showTimePicker, setShowTimePicker] = useState({ openTime: false, closeTime: false });
+    const [showTimePicker, setShowTimePicker] = useState({
+        openTime: false,
+        closeTime: false,
+    });
+
     const [selectedTime, setSelectedTime] = useState(null);
     const navigation = useNavigation();
+    // Array com os dias da semana
+    const daysOfWeek = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+    const [showDaysPicker, setShowDaysPicker] = useState(false);
+    const [selectedDays, setSelectedDays] = useState([]);
+
 
     const fetchLibraries = async () => {
         try {
@@ -64,6 +76,14 @@ const LibrariesScreen = () => {
         }
     };
 
+    const toggleDaySelection = (day) => {
+        if (selectedDays.includes(day)) {
+            setSelectedDays(selectedDays.filter((d) => d !== day));
+        } else {
+            setSelectedDays([...selectedDays, day]);
+        }
+    };
+
     const handleEditLibrary = (library) => {
         setModalVisible(true);
         setNewLibrary({
@@ -75,6 +95,7 @@ const LibrariesScreen = () => {
             openDays: library.openDays,
         });
     };
+
     const handleDeleteLibrary = (library) => {
         Alert.alert(
             'Confirmar Exclusão',
@@ -157,6 +178,7 @@ const LibrariesScreen = () => {
             Alert.alert('Erro', 'Erro ao editar biblioteca.');
         }
     };
+
     const addLibrary = async () => {
         const { name, address, openTime, closeTime, openDays } = newLibrary;
 
@@ -190,7 +212,6 @@ const LibrariesScreen = () => {
             Alert.alert('Erro', 'Erro ao adicionar biblioteca.');
         }
     };
-
 
     useEffect(() => {
         fetchLibraries();
@@ -232,7 +253,8 @@ const LibrariesScreen = () => {
 
             <TouchableOpacity
                 style={styles.fab}
-                onPress={() => setModalVisible(true)}
+                onPress={() => {setModalVisible(true);
+                setShowTimePicker({ openTime: false, closeTime: false }); }}
             >
                 <Text style={styles.fabText}>+</Text>
             </TouchableOpacity>
@@ -300,33 +322,173 @@ const LibrariesScreen = () => {
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, address: text })}
                         />
 
-                        {/* Hora de Abertura */}
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Hora de Abertura (ex: 08:00)"
-                            placeholderTextColor="rgba(0, 0, 0, 0.2)"
-                            value={newLibrary.openTime}
-                            onChangeText={(text) => setNewLibrary({ ...newLibrary, openTime: text })}
-                        />
+                        {/* Bot찾o para abrir o rel처gio de Hora de Abertura */}
+                        <TouchableOpacity
+                            style={styles.timeButton}
+                            onPress={() => setShowTimePicker({ ...showTimePicker, openTime: true })}
+                        >
+                            <Text style={styles.timeButtonText}>
+                                {newLibrary.openTime ? `Hora de abertura: ${newLibrary.openTime}` : "Hora de abertura (00:00)"}
+                            </Text>
+                        </TouchableOpacity>
 
-                        {/* Hora de Fecho */}
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Hora de Fecho (ex: 18:00)"
-                            placeholderTextColor="rgba(0, 0, 0, 0.2)"
-                            value={newLibrary.closeTime}
-                            onChangeText={(text) => setNewLibrary({ ...newLibrary, closeTime: text })}
-                        />
+                        {/* Modal para Hora de Abertura */}
+                        <Modal
+                            transparent={true}
+                            visible={showTimePicker.openTime}
+                            animationType="slide"
+                            onRequestClose={() => setShowTimePicker({ ...showTimePicker, openTime: false })}
+                        >
+                            <View style={styles.modalOverlay}>
+                                <View style={styles.modalContainer}>
+                                    <DateTimePicker
+                                        value={selectedTime || new Date()}
+                                        mode="time"
+                                        is24Hour={true}
+                                        display="spinner"
+                                        onChange={(event, selectedDate) => {
+                                            if (selectedDate) {
+                                                setSelectedTime(selectedDate); // Atualiza a hora selecionada
+                                            }
+                                        }}
+                                    />
+                                    <View style={styles.modalButtonContainer}>
+                                        <Button
+                                            title="Cancelar"
+                                            onPress={() => {
+                                                setShowTimePicker({ ...showTimePicker, openTime: false });
+                                                setSelectedTime(null); // Reseta o valor
+                                            }}
+                                            color="#f44336" // Vermelho
+                                        />
+                                        <Button
+                                            title="Confirmar"
+                                            onPress={() => {
+                                                if (selectedTime) {
+                                                    const hours = selectedTime.getHours().toString().padStart(2, '0');
+                                                    const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+                                                    setNewLibrary({ ...newLibrary, openTime: `${hours}:${minutes}` });
+                                                }
+                                                setShowTimePicker({ ...showTimePicker, openTime: false }); // Fecha o modal
+                                            }}
+                                            color="#6200ee" // Azul ou cor principal
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
 
-                        {/* Dias de Abertura */}
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Dias de Abertura (ex: Seg-Sex)"
-                            placeholderTextColor="rgba(0, 0, 0, 0.2)" // Preto com 80% de opacidade
+                        {/* Botão para abrir o relógio de Hora de Fecho */}
+                        <TouchableOpacity
+                            style={styles.timeButton}
+                            onPress={() => setShowTimePicker({ ...showTimePicker, closeTime: true })}
+                        >
+                            <Text style={styles.timeButtonText}>
+                                {newLibrary.closeTime ? `Hora de fecho: ${newLibrary.closeTime}` : "Hora de fecho (00:00)"}
+                            </Text>
+                        </TouchableOpacity>
 
-                            value={newLibrary.openDays}
-                            onChangeText={(text) => setNewLibrary({ ...newLibrary, openDays: text })}
-                        />
+                        {/* Modal para Hora de Fecho */}
+                        <Modal
+                            transparent={true}
+                            visible={showTimePicker.closeTime}
+                            animationType="slide"
+                            onRequestClose={() => setShowTimePicker({ ...showTimePicker, closeTime: false })}
+                        >
+                            <View style={styles.modalOverlay}>
+                                <View style={styles.modalContainer}>
+                                    <DateTimePicker
+                                        value={selectedTime || new Date()}
+                                        mode="time"
+                                        is24Hour={true}
+                                        display="spinner"
+                                        onChange={(event, selectedDate) => {
+                                            if (selectedDate) {
+                                                setSelectedTime(selectedDate); // Atualiza a hora selecionada
+                                            }
+                                        }}
+                                    />
+                                    <View style={styles.modalButtonContainer}>
+                                        <Button
+                                            title="Cancelar"
+                                            onPress={() => {
+                                                setShowTimePicker({ ...showTimePicker, closeTime: false });
+                                                setSelectedTime(null); // Reseta o valor
+                                            }}
+                                            color="#f44336" // Vermelho
+                                        />
+                                        <Button
+                                            title="Confirmar"
+                                            onPress={() => {
+                                                if (selectedTime) {
+                                                    const hours = selectedTime.getHours().toString().padStart(2, '0');
+                                                    const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+                                                    setNewLibrary({ ...newLibrary, closeTime: `${hours}:${minutes}` });
+                                                }
+                                                setShowTimePicker({ ...showTimePicker, closeTime: false }); // Fecha o modal
+                                            }}
+                                            color="#6200ee" // Azul ou cor principal
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+
+                        {/* Botão para abrir seleção de Dias de Abertura */}
+                        <TouchableOpacity
+                            style={styles.timeButton}
+                            onPress={() => setShowDaysPicker(true)}
+                        >
+                            <Text style={styles.timeButtonText}>
+                                {newLibrary.openDays ? `Dias de Abertura: ${newLibrary.openDays}` : "Selecione os Dias de Abertura"}
+                            </Text>
+                        </TouchableOpacity>
+
+                        {/* Modal para Seleção de Dias */}
+                        <Modal
+                            transparent={true}
+                            visible={showDaysPicker}
+                            animationType="slide"
+                            onRequestClose={() => setShowDaysPicker(false)}
+                        >
+                            <View style={styles.modalOverlay}>
+                                <View style={styles.modalContainer}>
+                                    <Text style={styles.modalTitle}>Selecione os Dias de Abertura</Text>
+
+                                    {/* Switches para os dias da semana */}
+                                    {daysOfWeek.map((day, index) => (
+                                        <View key={index} style={styles.switchContainer}>
+                                            <Switch
+                                                value={selectedDays.includes(day)}
+                                                onValueChange={() => toggleDaySelection(day)}
+                                                thumbColor={selectedDays.includes(day) ? "#6200ee" : "#ccc"} // Cor do botão
+                                                trackColor={{ false: "#ddd", true: "#b39ddb" }} // Cor do fundo
+                                            />
+                                            <Text style={styles.switchLabel}>{day}</Text>
+                                        </View>
+                                    ))}
+
+                                    {/* Botões de Cancelar e Confirmar */}
+                                    <View style={styles.modalButtonContainer}>
+                                        <Button
+                                            title="Cancelar"
+                                            onPress={() => {
+                                                setShowDaysPicker(false);
+                                            }}
+                                            color="#f44336" // Vermelho
+                                        />
+                                        <Button
+                                            title="Confirmar"
+                                            onPress={() => {
+                                                setNewLibrary({ ...newLibrary, openDays: selectedDays.join(', ') });
+                                                setShowDaysPicker(false); // Fecha o modal
+                                            }}
+                                            color="#6200ee" // Azul ou cor principal
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
 
                         <View style={styles.buttonRow}>
                             <Button
@@ -352,7 +514,10 @@ const LibrariesScreen = () => {
                     </View>
                 </View>
             </Modal>
+
+
         </View>
+
     );
 };
 
@@ -473,6 +638,49 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 8,
         width: 250,
+    },
+    timeButton: {
+        backgroundColor: '#6200ee',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    timeButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+        width: '80%',
+    },
+    switchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 10,
+        width: '100%',
+    },
+    switchLabel: {
+        fontSize: 16,
+        marginLeft: 10,
+        color: '#333',
+    },
+    modalButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        width: '100%',
     },
 });
 
