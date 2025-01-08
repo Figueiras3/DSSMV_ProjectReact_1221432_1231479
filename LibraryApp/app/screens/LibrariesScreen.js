@@ -301,7 +301,7 @@ const LibrariesScreen = () => {
                 <View style={styles.modalView}>
                     <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 8, width: '90%' }}>
                         <Text style={styles.modalTitle}>
-                            {newLibrary.id ? 'Edit Library' : 'Delete Library'}
+                            {newLibrary.id ? 'Edit Library' : 'Add Library'}
                         </Text>
 
                         {/* Nome da Biblioteca */}
