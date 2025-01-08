@@ -83,16 +83,16 @@ const UserLinkScreen = () => {
             console.log('Response data:', responseData); // Mostra detalhes da resposta
 
             if (response.ok) {
-                Alert.alert("Success", "Check-in realizado com sucesso!");
+                Alert.alert("Success", "Check-in successful!");
                 fetchBooksByUser(username); // Atualiza a lista de livros
             } else {
                 const errorMessage = responseData?.message || response.statusText || "Unknown error";
-                throw new Error(`Erro ao realizar o check-in: ${errorMessage}`);
+                throw new Error(`Error when checking in: ${errorMessage}`);
             }
 
         } catch (error) {
             console.error("Check-in failed:", error);
-            Alert.alert("Error", error.message || "Não foi possível realizar o check-in.");
+            Alert.alert("Error", error.message || "Error when checking in.");
         }
     };
 
@@ -110,16 +110,16 @@ const UserLinkScreen = () => {
             const response = await fetch(url, { method: "POST" });
 
             if (response.ok) {
-                Alert.alert("Sucesso", "A data de devolução foi estendida!");
+                Alert.alert("Sucess", "The return date has been extended!");
                 fetchBooksByUser(username);  // Atualiza a UI com a nova data de devolução
                 return true;
             } else {
                 const errorText = await response.text();
-                throw new Error(errorText || `Falha ao estender (status: ${response.status})`);
+                throw new Error(errorText || `Failed to extend (status: ${response.status})`);
             }
         } catch (error) {
-            console.error("Erro ao estender prazo:", error);
-            Alert.alert("Erro", error.message || "Ocorreu um erro inesperado.");
+            console.error("Error when extending deadline:", error);
+            Alert.alert("Error", error.message || "An unexpected error occurred.");
             return false;
         }
     };
@@ -127,11 +127,11 @@ const UserLinkScreen = () => {
 
     const handleLongPress = (libraryId, checkoutId, isbn) => {
         Alert.alert(
-            "Escolha uma Ação",
-            "O que gostaria de fazer?",
+            "Choose an Action",
+            "What would you like to do?",
             [
                 {
-                    text: "Extender",
+                    text: "Extend",
                     onPress: () => handleExtend(checkoutId),
                 },
                 {
@@ -139,7 +139,7 @@ const UserLinkScreen = () => {
                     onPress: () => performCheckIn(libraryId, isbn),
                 },
                 {
-                    text: "Cancelar",
+                    text: "Cancel",
                     style: "cancel",
                 },
             ],

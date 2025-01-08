@@ -39,7 +39,7 @@ const LibrariesScreen = () => {
     const [selectedTime, setSelectedTime] = useState(null);
     const navigation = useNavigation();
     // Array com os dias da semana
-    const daysOfWeek = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const [showDaysPicker, setShowDaysPicker] = useState(false);
     const [selectedDays, setSelectedDays] = useState([]);
@@ -65,14 +65,14 @@ const LibrariesScreen = () => {
             });
 
             if (response.ok) {
-                Alert.alert('Sucesso', 'Biblioteca excluída com sucesso.');
+                Alert.alert('Sucesso', 'Library deleted successfully.');
                 fetchLibraries();
             } else {
-                Alert.alert('Erro', 'Erro ao excluir biblioteca.');
+                Alert.alert('Erro', 'Error deleting library.');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Erro', 'Erro ao excluir biblioteca.');
+            Alert.alert('Erro', 'Error deleting library.');
         }
     };
 
@@ -98,35 +98,35 @@ const LibrariesScreen = () => {
 
     const handleDeleteLibrary = (library) => {
         Alert.alert(
-            'Confirmar Exclusão',
-            `Tem certeza que deseja excluir a biblioteca "${library.name}"?`,
+            'Confirm Deletion',
+            `Are you sure you want to delete the library "${library.name}"?`,
             [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Excluir', onPress: () => deleteLibrary(library.id) },
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete', onPress: () => deleteLibrary(library.id) },
             ]
         );
     };
 
     const handleLongPress = (library) => {
         Alert.alert(
-            "Ação Disponível",
-            `Escolha uma ação para a biblioteca "${library.name}"`,
+            "Available action",
+            `Choose an action for the library "${library.name}"`,
             [
                 {
-                    text: "Editar",
+                    text: "Edit",
                     onPress: () => {
                         handleEditLibrary(library);
                     },
                 },
                 {
-                    text: "Excluir",
+                    text: "Delete",
                     onPress: () => {
                         handleDeleteLibrary(library);
                     },
                     style: "destructive", // Define o botão como "perigoso" no iOS
                 },
                 {
-                    text: "Cancelar",
+                    text: "Cancel",
                     style: "cancel",
                 },
             ],
@@ -151,7 +151,7 @@ const LibrariesScreen = () => {
         const { id, name, address, openTime, closeTime, openDays } = newLibrary;
 
         if (!name || !address || !openTime || !closeTime || !openDays) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            Alert.alert('Erro', 'Please fill in all fields.');
             return;
         }
 
@@ -165,17 +165,17 @@ const LibrariesScreen = () => {
             });
 
             if (response.ok) {
-                Alert.alert('Sucesso', 'Biblioteca editada com sucesso!');
+                Alert.alert('Sucess', 'Library edited successfully!');
                 setModalVisible(false);
                 setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
                 fetchLibraries(); // Atualiza a lista após a edição
             } else {
                 const errorData = await response.json();
-                Alert.alert('Erro', errorData.message || 'Erro ao editar biblioteca.');
+                Alert.alert('Error', errorData.message || 'Error editing library.');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Erro', 'Erro ao editar biblioteca.');
+            Alert.alert('Error', 'Error editing library.');
         }
     };
 
@@ -183,7 +183,7 @@ const LibrariesScreen = () => {
         const { name, address, openTime, closeTime, openDays } = newLibrary;
 
         if (!name || !address || !openTime || !closeTime || !openDays) {
-            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            Alert.alert('Error', 'Please fill in all fields.');
             return;
         }
 
@@ -199,17 +199,17 @@ const LibrariesScreen = () => {
             if (response.ok) {
                 const addedLibrary = await response.json();
                 setData(prevData => (prevData ? [addedLibrary, ...prevData] : [addedLibrary]));
-                Alert.alert('Sucesso', 'Biblioteca adicionada com sucesso!');
+                Alert.alert('Success', 'Library added successfully!');
                 setModalVisible(false);
                 setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
                 fetchLibraries();
             } else {
                 const errorData = await response.json();
-                Alert.alert('Erro', errorData.message || 'Erro ao adicionar biblioteca.');
+                Alert.alert('Error', errorData.message || 'Error adding library.');
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Erro', 'Erro ao adicionar biblioteca.');
+            Alert.alert('Error', 'Error adding library.');
         }
     };
 
@@ -269,14 +269,14 @@ const LibrariesScreen = () => {
                 <View style={styles.menuOverlay}>
                     <View style={styles.menu}>
                         <Button
-                            title="Editar"
+                            title="Edit"
                             onPress={() => {
                                 handleEditLibrary(selectedLibrary);
                                 setMenuVisible(false);
                             }}
                         />
                         <Button
-                            title="Excluir"
+                            title="Delete"
                             onPress={() => {
                                 handleDeleteLibrary(selectedLibrary);
                                 setMenuVisible(false);
@@ -284,7 +284,7 @@ const LibrariesScreen = () => {
                             color="red"
                         />
                         <Button
-                            title="Cancelar"
+                            title="Cancel"
                             onPress={() => setMenuVisible(false)}
                         />
                     </View>
@@ -301,13 +301,13 @@ const LibrariesScreen = () => {
                 <View style={styles.modalView}>
                     <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 8, width: '90%' }}>
                         <Text style={styles.modalTitle}>
-                            {newLibrary.id ? 'Editar Biblioteca' : 'Adicionar Biblioteca'}
+                            {newLibrary.id ? 'Edit Library' : 'Delete Library'}
                         </Text>
 
                         {/* Nome da Biblioteca */}
                         <TextInput
                             style={styles.input}
-                            placeholder="Nome da Biblioteca"
+                            placeholder="Library Name"
                             placeholderTextColor="rgba(0, 0, 0, 0.2)"
                             value={newLibrary.name}
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, name: text })}
@@ -316,7 +316,7 @@ const LibrariesScreen = () => {
                         {/* Morada */}
                         <TextInput
                             style={styles.input}
-                            placeholder="Morada"
+                            placeholder="Adress"
                             placeholderTextColor="rgba(0, 0, 0, 0.2)"
                             value={newLibrary.address}
                             onChangeText={(text) => setNewLibrary({ ...newLibrary, address: text })}
@@ -328,7 +328,7 @@ const LibrariesScreen = () => {
                             onPress={() => setShowTimePicker({ ...showTimePicker, openTime: true })}
                         >
                             <Text style={styles.timeButtonText}>
-                                {newLibrary.openTime ? `Hora de abertura: ${newLibrary.openTime}` : "Hora de abertura (00:00)"}
+                                {newLibrary.openTime ? `Open Time: ${newLibrary.openTime}` : "Open Time (00:00)"}
                             </Text>
                         </TouchableOpacity>
 
@@ -354,7 +354,7 @@ const LibrariesScreen = () => {
                                     />
                                     <View style={styles.modalButtonContainer}>
                                         <Button
-                                            title="Cancelar"
+                                            title="Cancel"
                                             onPress={() => {
                                                 setShowTimePicker({ ...showTimePicker, openTime: false });
                                                 setSelectedTime(null); // Reseta o valor
@@ -362,7 +362,7 @@ const LibrariesScreen = () => {
                                             color="#f44336" // Vermelho
                                         />
                                         <Button
-                                            title="Confirmar"
+                                            title="Confirm"
                                             onPress={() => {
                                                 if (selectedTime) {
                                                     const hours = selectedTime.getHours().toString().padStart(2, '0');
@@ -384,7 +384,7 @@ const LibrariesScreen = () => {
                             onPress={() => setShowTimePicker({ ...showTimePicker, closeTime: true })}
                         >
                             <Text style={styles.timeButtonText}>
-                                {newLibrary.closeTime ? `Hora de fecho: ${newLibrary.closeTime}` : "Hora de fecho (00:00)"}
+                                {newLibrary.closeTime ? `Close Time: ${newLibrary.closeTime}` : "Close Time (00:00)"}
                             </Text>
                         </TouchableOpacity>
 
@@ -410,7 +410,7 @@ const LibrariesScreen = () => {
                                     />
                                     <View style={styles.modalButtonContainer}>
                                         <Button
-                                            title="Cancelar"
+                                            title="Cancel"
                                             onPress={() => {
                                                 setShowTimePicker({ ...showTimePicker, closeTime: false });
                                                 setSelectedTime(null); // Reseta o valor
@@ -418,7 +418,7 @@ const LibrariesScreen = () => {
                                             color="#f44336" // Vermelho
                                         />
                                         <Button
-                                            title="Confirmar"
+                                            title="Confirm"
                                             onPress={() => {
                                                 if (selectedTime) {
                                                     const hours = selectedTime.getHours().toString().padStart(2, '0');
@@ -440,7 +440,7 @@ const LibrariesScreen = () => {
                             onPress={() => setShowDaysPicker(true)}
                         >
                             <Text style={styles.timeButtonText}>
-                                {newLibrary.openDays ? `Dias de Abertura: ${newLibrary.openDays}` : "Selecione os Dias de Abertura"}
+                                {newLibrary.openDays ? `Open days: ${newLibrary.openDays}` : "Select Opening Days"}
                             </Text>
                         </TouchableOpacity>
 
@@ -453,7 +453,7 @@ const LibrariesScreen = () => {
                         >
                             <View style={styles.modalOverlay}>
                                 <View style={styles.modalContainer}>
-                                    <Text style={styles.modalTitle}>Selecione os Dias de Abertura</Text>
+                                    <Text style={styles.modalTitle}>Select Opening Days</Text>
 
                                     {/* Switches para os dias da semana */}
                                     {daysOfWeek.map((day, index) => (
@@ -471,14 +471,14 @@ const LibrariesScreen = () => {
                                     {/* Botões de Cancelar e Confirmar */}
                                     <View style={styles.modalButtonContainer}>
                                         <Button
-                                            title="Cancelar"
+                                            title="Cancel"
                                             onPress={() => {
                                                 setShowDaysPicker(false);
                                             }}
                                             color="#f44336" // Vermelho
                                         />
                                         <Button
-                                            title="Confirmar"
+                                            title="Confirm"
                                             onPress={() => {
                                                 setNewLibrary({ ...newLibrary, openDays: selectedDays.join(', ') });
                                                 setShowDaysPicker(false); // Fecha o modal
@@ -492,7 +492,7 @@ const LibrariesScreen = () => {
 
                         <View style={styles.buttonRow}>
                             <Button
-                                title="Cancelar"
+                                title="Cancel"
                                 onPress={() => {
                                     setModalVisible(false);
                                     setNewLibrary({ name: '', address: '', openTime: '', closeTime: '', openDays: '' });
@@ -500,7 +500,7 @@ const LibrariesScreen = () => {
                                 color="#6200ee"
                             />
                             <Button
-                                title="Salvar Alterações"
+                                title="Save changes"
                                 onPress={() => {
                                     if (newLibrary.id) {
                                         editLibrary();
